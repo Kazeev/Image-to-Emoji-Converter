@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Art Converter Pro</title>
+    <title>Image-to-Emoji-Converter</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -194,257 +194,330 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* Стили для управления GIF */
+        .gif-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .gif-controls button {
+            flex: 1;
+            padding: 0.5rem;
+        }
+
+        .frame-info {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="controls">
-            <div class="control-group">
-                <label>🖼️ Изображение</label>
-                <input type="file" id="imageInput" accept="image/*">
-            </div>
+<div class="container">
+    <div class="controls">
+        <div class="control-group">
+            <label>🖼️ Изображение</label>
+            <input type="file" id="imageInput" accept="image/*,.gif">
+        </div>
 
-            <div class="control-group">
-                <label>🖼️ Предпросмотр изображения</label>
-                <div class="image-preview-container">
-                    <canvas id="imagePreview"></canvas>
-                    <div class="loading-preview" style="display: none;">⏳ Загрузка...</div>
-                </div>
+        <div class="control-group">
+            <label>🖼️ Предпросмотр изображения</label>
+            <div class="image-preview-container">
+                <canvas id="imagePreview"></canvas>
+                <div class="loading-preview" style="display: none;">⏳ Загрузка...</div>
             </div>
-
-            <div class="control-group">
-                <label>📐 Сжатие (px: <span id="compressionValue">200</span>)</label>
-                <input type="range" id="compression" min="2" max="2000" value="200">
+            <!-- Элементы управления GIF -->
+            <div class="gif-controls" id="gifControls" style="display: none;">
+                <button id="prevFrame">⏮️</button>
+                <button id="playPause">⏯️</button>
+                <button id="nextFrame">⏭️</button>
             </div>
-
-            <div class="control-group">
-                <label>🔍 Масштаб (<span id="scaleValue">100</span>%)</label>
-                <input type="range" id="scale" min="0.1" max="3" step="0.1" value="1">
-            </div>
-
-            <div class="control-group">
-                <label>🎛️ Фильтры</label>
-                <div class="control-group">
-                    <label>☀️ Яркость</label>
-                    <input type="range" id="brightness" min="-100" max="100" value="0">
-                </div>
-                <div class="control-group">
-                    <label>🌗 Контраст</label>
-                    <input type="range" id="contrast" min="-100" max="100" value="0">
-                </div>
-            </div>
-            <div class="control-group">
-                <label>🎚️ Порог прозрачности (<span id="alphaThresholdValue">100</span>)</label>
-                <input type="range" id="alphaThreshold" min="0" max="255" value="100">
-            </div>
-
-            <div class="control-group">
-                <label>🎨 Палитра</label>
-                <select id="palette">
-                    <option value="default">По умолчанию</option>
-                    <option value="retro">Ретро</option>
-                    <option value="pastel">Пастель</option>
-                    <option value="neon">Неон</option>
-                    <option value="earth">Природа</option>
-                    <option value="cyberpunk">Киберпанк</option>
-                    <option value="grayscale">Градации серого</option>
-                    <option value="bw">Чёрно-белая</option>
-                    <option value="gameboy">Game Boy</option>
-                    <option value="rainbow">Радуга</option>
-                    <option value="minimal">Минимализм</option>
-                    <option value="candy">Конфетти</option>
-                    <option value="custom">Своя</option>
-                </select>
-
-                <div class="color-picker-group">
-                    <input type="color" id="colorPicker">
-                    <input type="text" id="charInput" class="emoji-input" value="⬜" maxlength="2">
-                </div>
-                <button onclick="addToCustomPalette()">➕ Добавить цвет</button>
-                <div class="palette-grid" id="palettePreview"></div>
-            </div>
-
-            <div class="control-group">
-                <label>🔄 Дизеринг</label>
-                <select id="dithering">
-                    <option value="none">Нет</option>
-                    <option value="floyd-steinberg">Floyd-Steinberg</option>
-                    <option value="atkinson">Atkinson</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <button onclick="downloadText()">💾 Скачать</button>
-                <button onclick="copyToClipboard()">📋 Копировать</button>
+            <div class="frame-info" id="frameInfo" style="display: none;">
+                Кадр: <span id="currentFrame">0</span>/<span id="totalFrames">0</span>
             </div>
         </div>
 
-        <div class="output-area">
-            <div id="output"></div>
+        <div class="control-group">
+            <label>📐 Сжатие (px: <span id="compressionValue">200</span>)</label>
+            <input type="range" id="compression" min="2" max="2000" value="200">
+        </div>
+
+        <div class="control-group">
+            <label>🔍 Масштаб (<span id="scaleValue">100</span>%)</label>
+            <input type="range" id="scale" min="0.1" max="3" step="0.1" value="1">
+        </div>
+
+        <div class="control-group">
+            <label>🎛️ Фильтры</label>
+            <div class="control-group">
+                <label>☀️ Яркость</label>
+                <input type="range" id="brightness" min="-100" max="100" value="0">
+            </div>
+            <div class="control-group">
+                <label>🌗 Контраст</label>
+                <input type="range" id="contrast" min="-100" max="100" value="0">
+            </div>
+        </div>
+        <div class="control-group">
+            <label>🎚️ Порог прозрачности (<span id="alphaThresholdValue">100</span>)</label>
+            <input type="range" id="alphaThreshold" min="0" max="255" value="100">
+        </div>
+
+        <div class="control-group">
+            <label>🎨 Палитра</label>
+            <select id="palette">
+                <option value="default">По умолчанию</option>
+                <option value="defaultSlim">По умолчанию простой</option>
+                <option value="retro">Ретро</option>
+                <option value="pastel">Пастель</option>
+                <option value="neon">Неон</option>
+                <option value="earth">Природа</option>
+                <option value="cyberpunk">Киберпанк</option>
+                <option value="grayscale">Градации серого</option>
+                <option value="bw">Чёрно-белая</option>
+                <option value="gameboy">Game Boy</option>
+                <option value="rainbow">Радуга</option>
+                <option value="minimal">Минимализм</option>
+                <option value="candy">Конфетти</option>
+                <option value="custom">Своя</option>
+            </select>
+
+            <div class="color-picker-group">
+                <input type="color" id="colorPicker">
+                <input type="text" id="charInput" class="emoji-input" value="⬜" maxlength="2">
+            </div>
+            <button onclick="addToCustomPalette()">➕ Добавить цвет</button>
+            <div class="palette-grid" id="palettePreview"></div>
+        </div>
+
+        <div class="control-group">
+            <label>🔄 Дизеринг</label>
+            <select id="dithering">
+                <option value="none">Нет</option>
+                <option value="floyd-steinberg">Floyd-Steinberg</option>
+                <option value="atkinson">Atkinson</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <button onclick="downloadText()">💾 Скачать</button>
+            <button onclick="copyToClipboard()">📋 Копировать</button>
         </div>
     </div>
 
-    <script>
-        let processingTimeout;
-        let lastImage;
-        let compressionSize = 200;
-        const palettes = {
-            default: [
-                { color: [255, 0, 0], char: '🟥' },     // Красный
-                { color: [255, 165, 0], char: '🟧' },   // Оранжевый
-                { color: [255, 255, 0], char: '🟨' },   // Жёлтый
-                { color: [0, 128, 0], char: '🟩' },     // Зелёный
-                { color: [0, 0, 255], char: '🟦' },     // Синий
-                { color: [128, 0, 128], char: '🟪' },   // Фиолетовый
-                { color: [165, 42, 42], char: '🟫' },   // Коричневый
-                { color: [255, 255, 255], char: '⬜' }, // Белый
-                { color: [0, 0, 0], char: '⬛' },       // Чёрный
+    <div class="output-area">
+        <div id="output"></div>
+    </div>
+</div>
 
-            ],
-            bw: [
-                { color: [0, 0, 0], char: '⬛' },      // Чёрный
-                { color: [255, 255, 255], char: '⬜' } // Белый
-            ],
-            retro: [
-                { color: [255, 0, 0], char: '🟥' },
-                { color: [255, 165, 0], char: '🟧' },
-                { color: [255, 255, 0], char: '🟨' },
-                { color: [0, 128, 0], char: '🟩' },
-                { color: [0, 0, 255], char: '🟦' }
-            ],
-            pastel: [
-                { color: [255, 209, 220], char: '🌸' }, // Розовый
-                { color: [189, 178, 255], char: '🫐' }, // Лавандовый
-                { color: [255, 255, 204], char: '⭐' }, // Желтый
-                { color: [204, 255, 229], char: '🍃' }, // Мятный
-                { color: [255, 218, 185], char: '🍑' }  // Персиковый
-            ],
-            neon: [
-                { color: [255, 0, 255], char: '💠' }, // Ярко-розовый
-                { color: [0, 255, 255], char: '🌀' }, // Голубой
-                { color: [255, 255, 0], char: '💡' }, // Желтый
-                { color: [0, 255, 0], char: '🌿' }   // Зеленый
-            ],
-            earth: [
-                { color: [139, 69, 19], char: '🟫' }, // Коричневый
-                { color: [34, 139, 34], char: '🌲' }, // Зеленый
-                { color: [210, 180, 140], char: '🏜' }, // Песочный
-                { color: [70, 130, 180], char: '🌊' }  // Синий
-            ],
-            cyberpunk: [
-                { color: [255, 0, 127], char: '🔴' }, // Неоново-розовый
-                { color: [0, 255, 191], char: '🔵' }, // Аквамарин
-                { color: [255, 95, 0], char: '🟠' },  // Оранжевый
-                { color: [148, 0, 211], char: '🟣' }  // Фиолетовый
-            ],
-            grayscale: [
-                { color: [25, 25, 25], char: '▓' },
-                { color: [75, 75, 75], char: '▒' },
-                { color: [125, 125, 125], char: '░' },
-                { color: [200, 200, 200], char: ' ' }
-            ],
-            gameboy: [
-                { color: [15, 56, 15], char: '🟩' },
-                { color: [48, 98, 48], char: '🟫' },
-                { color: [139, 172, 15], char: '🟨' },
-                { color: [155, 188, 15], char: '⬜' }
-            ],
-            rainbow: [
-                { color: [255, 0, 0], char: '🟥' },
-                { color: [255, 127, 0], char: '🟧' },
-                { color: [255, 255, 0], char: '🟨' },
-                { color: [0, 255, 0], char: '🟩' },
-                { color: [0, 0, 255], char: '🟦' },
-                { color: [75, 0, 130], char: '🟪' },
-                { color: [148, 0, 211], char: '🟣' }
-            ],
-            minimal: [
-                { color: [255, 255, 255], char: '⬜' },
-                { color: [200, 200, 200], char: '▩' },
-                { color: [150, 150, 150], char: '▦' },
-                { color: [50, 50, 50], char: '⬛' }
-            ],
-            candy: [
-                { color: [255, 105, 180], char: '🍬' }, // Розовый
-                { color: [255, 223, 0], char: '🍯' },   // Желтый
-                { color: [173, 216, 230], char: '🍭' }, // Голубой
-                { color: [152, 251, 152], char: '🍏' }  // Мятный
-            ]
+<!-- Подключаем библиотеку для работы с GIF -->
+<script src="https://cdn.jsdelivr.net/npm/gifler@0.1.0/gifler.min.js"></script>
+
+<script>
+    let processingTimeout;
+    let lastImage;
+    let compressionSize = 200;
+    const palettes = {
+        default: [
+            { color: [255, 0, 0], char: '🟥' },     // Красный
+            { color: [255, 69, 0], char: '🟧' },    // Оранжевый
+            { color: [255, 165, 0], char: '🟠' },   // Ярко-оранжевый
+            { color: [255, 255, 0], char: '🟨' },   // Жёлтый
+            { color: [255, 215, 0], char: '🟡' },   // Золотой
+            { color: [0, 128, 0], char: '🟩' },     // Зелёный
+            { color: [0, 255, 0], char: '🟢' },     // Ярко-зелёный
+            { color: [0, 0, 255], char: '🟦' },     // Синий
+            { color: [65, 105, 225], char: '🔵' },  // Королевский синий
+            { color: [128, 0, 128], char: '🟪' },   // Фиолетовый
+            { color: [148, 0, 211], char: '🟣' },   // Тёмно-фиолетовый
+            { color: [165, 42, 42], char: '🟫' },   // Коричневый
+            { color: [139, 69, 19], char: '🟤' },   // Тёмно-коричневый
+            { color: [0, 0, 0], char: '⬛' },       // Чёрный
+            { color: [0, 0, 0], char: '⚫' },       // Чёрный круг
+            { color: [255, 255, 255], char: '⬜' }, // Белый
+            { color: [255, 255, 255], char: '⚪' }, // Белый круг
+            { color: [220, 20, 60], char: '🔴' }    // Ярко-красный
+        ],
+        defaultSlim: [
+            { color: [255, 0, 0], char: '🟥' },     // Красный
+            { color: [255, 165, 0], char: '🟧' },   // Оранжевый
+            { color: [255, 255, 0], char: '🟨' },   // Жёлтый
+            { color: [0, 128, 0], char: '🟩' },     // Зелёный
+            { color: [0, 0, 255], char: '🟦' },     // Синий
+            { color: [128, 0, 128], char: '🟪' },   // Фиолетовый
+            { color: [165, 42, 42], char: '🟫' },   // Коричневый
+            { color: [255, 255, 255], char: '⬜' }, // Белый
+            { color: [0, 0, 0], char: '⬛' },       // Чёрный
+
+        ],
+        bw: [
+            { color: [0, 0, 0], char: '⬛' },      // Чёрный
+            { color: [255, 255, 255], char: '⬜' } // Белый
+        ],
+        retro: [
+            { color: [255, 0, 0], char: '🟥' },
+            { color: [255, 165, 0], char: '🟧' },
+            { color: [255, 255, 0], char: '🟨' },
+            { color: [0, 128, 0], char: '🟩' },
+            { color: [0, 0, 255], char: '🟦' }
+        ],
+        pastel: [
+            { color: [255, 209, 220], char: '🌸' }, // Розовый
+            { color: [189, 178, 255], char: '🫐' }, // Лавандовый
+            { color: [255, 255, 204], char: '⭐' }, // Желтый
+            { color: [204, 255, 229], char: '🍃' }, // Мятный
+            { color: [255, 218, 185], char: '🍑' }  // Персиковый
+        ],
+        neon: [
+            { color: [255, 0, 255], char: '💠' }, // Ярко-розовый
+            { color: [0, 255, 255], char: '🌀' }, // Голубой
+            { color: [255, 255, 0], char: '💡' }, // Желтый
+            { color: [0, 255, 0], char: '🌿' }   // Зеленый
+        ],
+        earth: [
+            { color: [139, 69, 19], char: '🟫' }, // Коричневый
+            { color: [34, 139, 34], char: '🌲' }, // Зеленый
+            { color: [210, 180, 140], char: '🏜' }, // Песочный
+            { color: [70, 130, 180], char: '🌊' }  // Синий
+        ],
+        cyberpunk: [
+            { color: [255, 0, 127], char: '🔴' }, // Неоново-розовый
+            { color: [0, 255, 191], char: '🔵' }, // Аквамарин
+            { color: [255, 95, 0], char: '🟠' },  // Оранжевый
+            { color: [148, 0, 211], char: '🟣' }  // Фиолетовый
+        ],
+        grayscale: [
+            { color: [25, 25, 25], char: '▓' },
+            { color: [75, 75, 75], char: '▒' },
+            { color: [125, 125, 125], char: '░' },
+            { color: [200, 200, 200], char: ' ' }
+        ],
+        gameboy: [
+            { color: [15, 56, 15], char: '🟩' },
+            { color: [48, 98, 48], char: '🟫' },
+            { color: [139, 172, 15], char: '🟨' },
+            { color: [155, 188, 15], char: '⬜' }
+        ],
+        rainbow: [
+            { color: [255, 0, 0], char: '🟥' },
+            { color: [255, 127, 0], char: '🟧' },
+            { color: [255, 255, 0], char: '🟨' },
+            { color: [0, 255, 0], char: '🟩' },
+            { color: [0, 0, 255], char: '🟦' },
+            { color: [75, 0, 130], char: '🟪' },
+            { color: [148, 0, 211], char: '🟣' }
+        ],
+        minimal: [
+            { color: [255, 255, 255], char: '⬜' },
+            { color: [200, 200, 200], char: '▩' },
+            { color: [150, 150, 150], char: '▦' },
+            { color: [50, 50, 50], char: '⬛' }
+        ],
+        candy: [
+            { color: [255, 105, 180], char: '🍬' }, // Розовый
+            { color: [255, 223, 0], char: '🍯' },   // Желтый
+            { color: [173, 216, 230], char: '🍭' }, // Голубой
+            { color: [152, 251, 152], char: '🍏' }  // Мятный
+        ]
+    };
+
+    let customPalette = JSON.parse(localStorage.getItem('customPalette')) || [...palettes.default];
+    let currentZoom = 1;
+    const outputElement = document.getElementById('output');
+
+    // Переменные для управления GIF
+    let gifPlayer = null;
+    let gifFrames = [];
+    let currentGifFrame = 0;
+    let isPlaying = false;
+    let gifInterval = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Убедимся, что элементы существуют
+        const init = function () {
+            // ... остальная инициализация ...
         };
 
-        let customPalette = JSON.parse(localStorage.getItem('customPalette')) || [...palettes.default];
-        let currentZoom = 1;
-        const outputElement = document.getElementById('output');
-
-        document.addEventListener('DOMContentLoaded', function () {
-            // Убедимся, что элементы существуют
-            const init = function () {
-                // ... остальная инициализация ...
-            };
-
-            if (document.readyState !== 'loading') {
-                init();
-            } else {
-                document.addEventListener('DOMContentLoaded', init);
-            }
-        });
-        function init() {
-            setupEventListeners();
-            updatePalettePreview(); // Инициализация предпросмотра
-            updateScale();
+        if (document.readyState !== 'loading') {
+            init();
+        } else {
+            document.addEventListener('DOMContentLoaded', init);
         }
+    });
+    function init() {
+        setupEventListeners();
+        updatePalettePreview(); // Инициализация предпросмотра
+        updateScale();
+    }
 
-        function setupEventListeners() {
-            // Обработчики изменений параметров
-            const params = ['compression', 'scale', 'brightness', 'contrast', 'dithering'];
-            params.forEach(id => {
-                document.getElementById(id).addEventListener('input', () => {
-                    if (id === 'compression') {
-                        compressionSize = document.getElementById(id).value;
-                        document.getElementById('compressionValue').textContent = compressionSize;
-                    }
-                    if (id === 'scale') {
-                        currentZoom = parseFloat(document.getElementById(id).value);
-                        document.getElementById('scaleValue').textContent = Math.round(currentZoom * 100);
-                    }
-                    debouncedProcessImage(300);
-                });
-            });
-
-            document.getElementById('imageInput').addEventListener('change', handleFileSelect);
-
-            // Удаление цветов из палитры
-            document.getElementById('palettePreview').addEventListener('click', e => {
-                if (e.target.classList.contains('palette-color')) {
-                    const index = [...e.target.parentElement.children].indexOf(e.target);
-                    customPalette.splice(index, 1);
-                    updatePalettePreview();
-                    debouncedProcessImage(100);
+    function setupEventListeners() {
+        // Обработчики изменений параметров
+        const params = ['compression', 'scale', 'brightness', 'contrast', 'dithering'];
+        params.forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                if (id === 'compression') {
+                    compressionSize = document.getElementById(id).value;
+                    document.getElementById('compressionValue').textContent = compressionSize;
                 }
+                if (id === 'scale') {
+                    currentZoom = parseFloat(document.getElementById(id).value);
+                    document.getElementById('scaleValue').textContent = Math.round(currentZoom * 100);
+                }
+                debouncedProcessImage(300);
             });
-            document.getElementById('palette').addEventListener('change', () => {
+        });
+
+        document.getElementById('imageInput').addEventListener('change', handleFileSelect);
+
+        // Удаление цветов из палитры
+        document.getElementById('palettePreview').addEventListener('click', e => {
+            if (e.target.classList.contains('palette-color')) {
+                const index = [...e.target.parentElement.children].indexOf(e.target);
+                customPalette.splice(index, 1);
                 updatePalettePreview();
                 debouncedProcessImage(100);
-            });
-        }
+            }
+        });
+        document.getElementById('palette').addEventListener('change', () => {
+            updatePalettePreview();
+            debouncedProcessImage(100);
+        });
 
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        // Обработчики для управления GIF
+        document.getElementById('prevFrame').addEventListener('click', showPrevFrame);
+        document.getElementById('nextFrame').addEventListener('click', showNextFrame);
+        document.getElementById('playPause').addEventListener('click', togglePlayPause);
+    }
 
-            const reader = new FileReader();
-            const previewCanvas = document.getElementById('imagePreview');
-            const container = document.querySelector('.image-preview-container');
-            const loader = container.querySelector('.loading-preview');
+    function handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (!file) return;
 
-            // Показываем лоадер и прячем canvas
-            loader.style.display = 'block';
-            previewCanvas.style.display = 'none';
+        // Останавливаем предыдущую анимацию GIF, если она была
+        stopGifPlayback();
 
-            reader.onload = function (e) {
-                const img = new Image();
-                img.onload = () => {
+        const reader = new FileReader();
+        const previewCanvas = document.getElementById('imagePreview');
+        const container = document.querySelector('.image-preview-container');
+        const loader = container.querySelector('.loading-preview');
+
+        // Показываем лоадер и прячем canvas
+        loader.style.display = 'block';
+        previewCanvas.style.display = 'none';
+
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = () => {
+                // Проверяем, является ли изображение GIF
+                if (file.type === 'image/gif') {
+                    loadGifAnimation(e.target.result);
+                } else {
+                    // Обычное изображение
+                    showGifControls(false);
                     const ctx = previewCanvas.getContext('2d');
                     const maxSize = 300;
                     const ratio = Math.min(maxSize / img.width, maxSize / img.height);
@@ -460,217 +533,346 @@
 
                     lastImage = img;
                     processImage(img);
-                };
-                img.src = e.target.result;
+                }
             };
+            img.src = e.target.result;
+        };
 
-            reader.onerror = () => {
-                alert('Ошибка загрузки изображения');
-                previewCanvas.style.display = 'none';
-                loader.style.display = 'none';
-            };
+        reader.onerror = () => {
+            alert('Ошибка загрузки изображения');
+            previewCanvas.style.display = 'none';
+            loader.style.display = 'none';
+        };
 
-            reader.readAsDataURL(file);
-        }
+        reader.readAsDataURL(file);
+    }
 
-        function processImage(img) {
+    function loadGifAnimation(gifUrl) {
+        const previewCanvas = document.getElementById('imagePreview');
+        const loader = document.querySelector('.loading-preview');
+
+        // Очищаем предыдущие кадры
+        gifFrames = [];
+        currentGifFrame = 0;
+
+        // Используем gifler для разбора GIF
+        gifler(gifUrl).frames(previewCanvas, (ctx, frame) => {
+            // Сохраняем каждый кадр GIF
             const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const scale = Math.min(compressionSize / img.width, compressionSize / img.height);
+            canvas.width = frame.width;
+            canvas.height = frame.height;
+            const frameCtx = canvas.getContext('2d');
+            frameCtx.drawImage(frame.buffer, 0, 0);
 
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            gifFrames.push({
+                image: canvas,
+                delay: frame.delay
+            });
 
-            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            // Обновляем информацию о количестве кадров
+            document.getElementById('totalFrames').textContent = gifFrames.length;
 
-            // Применение фильтров
-            imageData = applyFilters(
-                imageData,
-                parseInt(document.getElementById('brightness').value),
-                parseInt(document.getElementById('contrast').value)
-            );
+            // Если это первый кадр, показываем его
+            if (gifFrames.length === 1) {
+                showGifFrame(0);
+                showGifControls(true);
 
-            // Применение дизеринга
-            const ditherType = document.getElementById('dithering').value;
-            if (ditherType !== 'none') {
-                applyDithering(imageData, ditherType);
+                // Показываем canvas и прячем лоадер
+                previewCanvas.style.display = 'block';
+                loader.style.display = 'none';
             }
-
-            outputElement.textContent = convertToText(imageData, getCurrentPalette());
-            updateScale();
-        }
-
-        function applyFilters(imageData, brightness, contrast) {
-            const data = imageData.data;
-            const contrastFactor = (contrast / 100) + 1;
-            const intercept = 128 * (1 - contrastFactor);
-
-            for (let i = 0; i < data.length; i += 4) {
-                for (let j = 0; j < 3; j++) {
-                    data[i + j] = clamp((data[i + j] + brightness) * contrastFactor + intercept);
-                }
-            }
-            return imageData;
-        }
-        document.getElementById('alphaThreshold').addEventListener('input', function (e) {
-            document.getElementById('alphaThresholdValue').textContent = e.target.value;
-            debouncedProcessImage(100);
         });
-        function applyDithering(imageData, type) {
-            const data = imageData.data;
-            const width = imageData.width;
-            const height = imageData.height;
+    }
 
-            const matrix = {
-                'floyd-steinberg': [[1, 0, 7 / 16], [-1, 1, 3 / 16], [0, 1, 5 / 16], [1, 1, 1 / 16]],
-                'atkinson': [[1, 0, 1 / 8], [2, 0, 1 / 8], [-1, 1, 1 / 8], [0, 1, 1 / 8], [1, 1, 1 / 8], [0, 2, 1 / 8]]
-            }[type];
+    function showGifControls(show) {
+        const gifControls = document.getElementById('gifControls');
+        const frameInfo = document.getElementById('frameInfo');
 
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const i = (y * width + x) * 4;
-                    const oldR = data[i];
-                    const oldG = data[i + 1];
-                    const oldB = data[i + 2];
+        if (show) {
+            gifControls.style.display = 'flex';
+            frameInfo.style.display = 'block';
+        } else {
+            gifControls.style.display = 'none';
+            frameInfo.style.display = 'none';
+        }
+    }
 
-                    const newR = Math.round(oldR / 255) * 255;
-                    const newG = Math.round(oldG / 255) * 255;
-                    const newB = Math.round(oldB / 255) * 255;
+    function showGifFrame(frameIndex) {
+        if (frameIndex < 0 || frameIndex >= gifFrames.length) return;
 
-                    data[i] = newR;
-                    data[i + 1] = newG;
-                    data[i + 2] = newB;
+        currentGifFrame = frameIndex;
+        const previewCanvas = document.getElementById('imagePreview');
+        const ctx = previewCanvas.getContext('2d');
+        const frame = gifFrames[frameIndex];
 
-                    const errR = oldR - newR;
-                    const errG = oldG - newG;
-                    const errB = oldB - newB;
+        // Очищаем canvas
+        ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
 
-                    matrix.forEach(([dx, dy, factor]) => {
-                        const nx = x + dx;
-                        const ny = y + dy;
-                        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-                            const ni = (ny * width + nx) * 4;
-                            data[ni] += errR * factor;
-                            data[ni + 1] += errG * factor;
-                            data[ni + 2] += errB * factor;
-                        }
-                    });
-                }
-            }
+        // Масштабируем и рисуем кадр
+        const maxSize = 300;
+        const ratio = Math.min(maxSize / frame.image.width, maxSize / frame.image.height);
+        previewCanvas.width = frame.image.width * ratio;
+        previewCanvas.height = frame.image.height * ratio;
+
+        ctx.drawImage(frame.image, 0, 0, previewCanvas.width, previewCanvas.height);
+
+        // Обновляем информацию о текущем кадре
+        document.getElementById('currentFrame').textContent = currentGifFrame + 1;
+
+        // Обрабатываем кадр
+        const img = new Image();
+        img.onload = () => {
+            lastImage = img;
+            processImage(img);
+        };
+        img.src = frame.image.toDataURL();
+    }
+
+    function showPrevFrame() {
+        stopGifPlayback();
+        const newFrame = (currentGifFrame - 1 + gifFrames.length) % gifFrames.length;
+        showGifFrame(newFrame);
+    }
+
+    function showNextFrame() {
+        stopGifPlayback();
+        const newFrame = (currentGifFrame + 1) % gifFrames.length;
+        showGifFrame(newFrame);
+    }
+
+    function togglePlayPause() {
+        if (isPlaying) {
+            stopGifPlayback();
+        } else {
+            startGifPlayback();
+        }
+    }
+
+    function startGifPlayback() {
+        if (gifFrames.length === 0) return;
+
+        isPlaying = true;
+        document.getElementById('playPause').textContent = '⏸️';
+
+        // Показываем текущий кадр
+        showGifFrame(currentGifFrame);
+
+        // Запускаем интервал для автоматического переключения кадров
+        const delay = gifFrames[currentGifFrame].delay * 10 || 100; // Задержка в мс
+        gifInterval = setInterval(() => {
+            currentGifFrame = (currentGifFrame + 1) % gifFrames.length;
+            showGifFrame(currentGifFrame);
+        }, delay);
+    }
+
+    function stopGifPlayback() {
+        isPlaying = false;
+        document.getElementById('playPause').textContent = '⏯️';
+
+        if (gifInterval) {
+            clearInterval(gifInterval);
+            gifInterval = null;
+        }
+    }
+
+    function processImage(img) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const scale = Math.min(compressionSize / img.width, compressionSize / img.height);
+
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        // Применение фильтров
+        imageData = applyFilters(
+            imageData,
+            parseInt(document.getElementById('brightness').value),
+            parseInt(document.getElementById('contrast').value)
+        );
+
+        // Применение дизеринга
+        const ditherType = document.getElementById('dithering').value;
+        if (ditherType !== 'none') {
+            applyDithering(imageData, ditherType);
         }
 
-        function convertToText(imageData, palette) {
-            let result = '';
-            const alphaThreshold = parseInt(document.getElementById('alphaThreshold').value);
+        outputElement.textContent = convertToText(imageData, getCurrentPalette());
+        updateScale();
+    }
 
-            for (let y = 0; y < imageData.height; y++) {
-                for (let x = 0; x < imageData.width; x++) {
-                    const i = (y * imageData.width + x) * 4;
-                    const alpha = imageData.data[i + 3];
+    function applyFilters(imageData, brightness, contrast) {
+        const data = imageData.data;
+        const contrastFactor = (contrast / 100) + 1;
+        const intercept = 128 * (1 - contrastFactor);
 
-                    if (alpha < alphaThreshold) {
-                        result += 'ㅤ'; // Специальный символ для прозрачности
-                        continue;
+        for (let i = 0; i < data.length; i += 4) {
+            for (let j = 0; j < 3; j++) {
+                data[i + j] = clamp((data[i + j] + brightness) * contrastFactor + intercept);
+            }
+        }
+        return imageData;
+    }
+    document.getElementById('alphaThreshold').addEventListener('input', function (e) {
+        document.getElementById('alphaThresholdValue').textContent = e.target.value;
+        debouncedProcessImage(100);
+    });
+    function applyDithering(imageData, type) {
+        const data = imageData.data;
+        const width = imageData.width;
+        const height = imageData.height;
+
+        const matrix = {
+            'floyd-steinberg': [[1, 0, 7 / 16], [-1, 1, 3 / 16], [0, 1, 5 / 16], [1, 1, 1 / 16]],
+            'atkinson': [[1, 0, 1 / 8], [2, 0, 1 / 8], [-1, 1, 1 / 8], [0, 1, 1 / 8], [1, 1, 1 / 8], [0, 2, 1 / 8]]
+        }[type];
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const i = (y * width + x) * 4;
+                const oldR = data[i];
+                const oldG = data[i + 1];
+                const oldB = data[i + 2];
+
+                const newR = Math.round(oldR / 255) * 255;
+                const newG = Math.round(oldG / 255) * 255;
+                const newB = Math.round(oldB / 255) * 255;
+
+                data[i] = newR;
+                data[i + 1] = newG;
+                data[i + 2] = newB;
+
+                const errR = oldR - newR;
+                const errG = oldG - newG;
+                const errB = oldB - newB;
+
+                matrix.forEach(([dx, dy, factor]) => {
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                        const ni = (ny * width + nx) * 4;
+                        data[ni] += errR * factor;
+                        data[ni + 1] += errG * factor;
+                        data[ni + 2] += errB * factor;
                     }
+                });
+            }
+        }
+    }
 
-                    const pixel = [
-                        imageData.data[i],
-                        imageData.data[i + 1],
-                        imageData.data[i + 2]
-                    ];
+    function convertToText(imageData, palette) {
+        let result = '';
+        const alphaThreshold = parseInt(document.getElementById('alphaThreshold').value);
 
-                    result += findClosestColor(pixel, palette).char;
+        for (let y = 0; y < imageData.height; y++) {
+            for (let x = 0; x < imageData.width; x++) {
+                const i = (y * imageData.width + x) * 4;
+                const alpha = imageData.data[i + 3];
+
+                if (alpha < alphaThreshold) {
+                    result += 'ㅤ'; // Специальный символ для прозрачности
+                    continue;
                 }
-                result += '\n';
+
+                const pixel = [
+                    imageData.data[i],
+                    imageData.data[i + 1],
+                    imageData.data[i + 2]
+                ];
+
+                result += findClosestColor(pixel, palette).char;
             }
-            return result;
+            result += '\n';
         }
+        return result;
+    }
 
-        function findClosestColor(pixel, palette) {
-            return palette.reduce((closest, entry) => {
-                const distance = pixel.reduce((sum, v, i) => sum + (v - entry.color[i]) ** 2, 0);
-                return distance < closest.distance ? { char: entry.char, distance } : closest;
-            }, { distance: Infinity });
+    function findClosestColor(pixel, palette) {
+        return palette.reduce((closest, entry) => {
+            const distance = pixel.reduce((sum, v, i) => sum + (v - entry.color[i]) ** 2, 0);
+            return distance < closest.distance ? { char: entry.char, distance } : closest;
+        }, { distance: Infinity });
+    }
+
+    function updateScale() {
+        outputElement.style.transform = `scale(${currentZoom})`;
+        outputElement.style.width = `${100 / currentZoom}%`;
+    }
+
+    function addToCustomPalette() {
+        const colorHex = document.getElementById('colorPicker').value;
+        const color = [
+            parseInt(colorHex.substr(1, 2), 16),
+            parseInt(colorHex.substr(3, 2), 16),
+            parseInt(colorHex.substr(5, 2), 16)
+        ];
+        const char = document.getElementById('charInput').value;
+
+        if (!customPalette.some(c => c.char === char &&
+            c.color[0] === color[0] &&
+            c.color[1] === color[1] &&
+            c.color[2] === color[2])) {
+            customPalette.push({ color, char });
+            localStorage.setItem('customPalette', JSON.stringify(customPalette));
+            updatePalettePreview();
+            debouncedProcessImage(100);
         }
+    }
 
-        function updateScale() {
-            outputElement.style.transform = `scale(${currentZoom})`;
-            outputElement.style.width = `${100 / currentZoom}%`;
-        }
+    function getCurrentPalette() {
+        const paletteType = document.getElementById('palette').value;
+        return paletteType === 'custom' ? customPalette : palettes[paletteType];
+    }
 
-        function addToCustomPalette() {
-            const colorHex = document.getElementById('colorPicker').value;
-            const color = [
-                parseInt(colorHex.substr(1, 2), 16),
-                parseInt(colorHex.substr(3, 2), 16),
-                parseInt(colorHex.substr(5, 2), 16)
-            ];
-            const char = document.getElementById('charInput').value;
+    function updatePalettePreview() {
+        const preview = document.getElementById('palettePreview');
+        const currentPalette = getCurrentPalette();
 
-            if (!customPalette.some(c => c.char === char &&
-                c.color[0] === color[0] &&
-                c.color[1] === color[1] &&
-                c.color[2] === color[2])) {
-                customPalette.push({ color, char });
-                localStorage.setItem('customPalette', JSON.stringify(customPalette));
-                updatePalettePreview();
-                debouncedProcessImage(100);
-            }
-        }
-
-        function getCurrentPalette() {
-            const paletteType = document.getElementById('palette').value;
-            return paletteType === 'custom' ? customPalette : palettes[paletteType];
-        }
-
-        function updatePalettePreview() {
-            const preview = document.getElementById('palettePreview');
-            const currentPalette = getCurrentPalette();
-
-            preview.innerHTML = currentPalette.map(entry => `
+        preview.innerHTML = currentPalette.map(entry => `
         <div class="palette-color" 
              style="background: rgb(${entry.color});
                     color: ${getContrastColor(entry.color)}">
             ${entry.char}
         </div>
     `).join('');
-        }
+    }
 
-        function getContrastColor(rgb) {
-            const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
-            return brightness > 150 ? '#000' : '#fff';
-        }
+    function getContrastColor(rgb) {
+        const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+        return brightness > 150 ? '#000' : '#fff';
+    }
 
-        function clamp(value) {
-            return Math.max(0, Math.min(255, value));
-        }
+    function clamp(value) {
+        return Math.max(0, Math.min(255, value));
+    }
 
-        async function copyToClipboard() {
-            try {
-                await navigator.clipboard.writeText(outputElement.textContent);
-                alert('Текст скопирован!');
-            } catch (err) {
-                alert('Ошибка копирования: ' + err);
-            }
+    async function copyToClipboard() {
+        try {
+            await navigator.clipboard.writeText(outputElement.textContent);
+            alert('Текст скопирован!');
+        } catch (err) {
+            alert('Ошибка копирования: ' + err);
         }
+    }
 
-        function downloadText() {
-            const blob = new Blob([outputElement.textContent], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'pixel-art.txt';
-            a.click();
-        }
+    function downloadText() {
+        const blob = new Blob([outputElement.textContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pixel-art.txt';
+        a.click();
+    }
 
-        function debouncedProcessImage(delay) {
-            clearTimeout(processingTimeout);
-            processingTimeout = setTimeout(() => lastImage && processImage(lastImage), delay);
-        }
+    function debouncedProcessImage(delay) {
+        clearTimeout(processingTimeout);
+        processingTimeout = setTimeout(() => lastImage && processImage(lastImage), delay);
+    }
 
-        init();
-    </script>
+    init();
+</script>
 </body>
 
 </html>
